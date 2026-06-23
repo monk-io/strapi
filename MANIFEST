@@ -1,0 +1,4 @@
+LOAD strapi.yaml
+LOAD strapi-example.yaml
+LOAD strapi-stack.yaml
+ENTRY strapi/stack-local

@@ -1,0 +1,405 @@
+namespace: strapi
+
+stack-db:
+  defines: runnable
+  inherits: postgresql/db
+  metadata:
+    name: Strapi Stack PostgreSQL
+    description: |
+      Private PostgreSQL database for the production-oriented standalone Strapi stack. It inherits
+      the Monk catalog `postgresql/db` package and is not published to the host or internet.
+    tags: strapi, postgres, database, standalone, production
+    website: https://www.postgresql.org/
+    source: https://github.com/postgres/postgres
+    publisher: monk.io
+    icon: https://www.postgresql.org/media/img/about/press/elephant.png
+    private: false
+  variables:
+    version:
+      type: string
+      value: "17"
+      description: Public postgres Docker image tag used by the standalone stack.
+    db_name:
+      type: string
+      env: POSTGRES_DB
+      value: <- $stack-db-name
+      description: PostgreSQL database name created for Strapi.
+    db_user:
+      type: string
+      env: POSTGRES_USER
+      value: <- $stack-db-user
+      description: PostgreSQL user created for Strapi.
+    db_pass:
+      type: string
+      env: POSTGRES_PASSWORD
+      value: <- $stack-db-password
+      description: Sensitive generated PostgreSQL password for the standalone stack. Inheriting production templates that need stable credentials should set secret("strapi-db-password").
+  containers:
+    postgres:
+      paths:
+        - <- `${monk-volume-path}/strapi-stack-postgres:/var/lib/postgresql/data`
+  services:
+    postgres:
+      container: postgres
+      port: 5432
+      protocol: tcp
+      publish: false
+      description: Private PostgreSQL endpoint consumed by Strapi.
+  checks:
+    readiness:
+      code: tcp-check-service("strapi/stack-db", "postgres")
+      period: 10
+      initialDelay: 10
+      attempts: 30
+
+stack-app:
+  defines: runnable
+  inherits: strapi/base
+  metadata:
+    name: Strapi Standalone App
+    description: |
+      Production-oriented Strapi application connected to private PostgreSQL. The HTTP service is
+      intended for authenticated Strapi admin/API access through Monk ingress on ingress-capable
+      targets; local targets do not support ingress, so use strapi/stack-local for localhost proof.
+    tags: strapi, cms, postgres, standalone, production
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    app-volume-name:
+      type: string
+      value: strapi-stack-app
+      description: Monk volume subdirectory used by the production-oriented Strapi project.
+    database-host:
+      type: string
+      env: DATABASE_HOST
+      value: <- connection-hostname("db")
+      description: PostgreSQL hostname read from the Monk `db` connection.
+    database-port:
+      type: string
+      env: DATABASE_PORT
+      value: <- connection-port("db")
+      description: PostgreSQL port read from the Monk `db` connection.
+    database-name:
+      type: string
+      env: DATABASE_NAME
+      value: <- $stack-db-name
+      description: PostgreSQL database name used by Strapi.
+    database-username:
+      type: string
+      env: DATABASE_USERNAME
+      value: <- $stack-db-user
+      description: PostgreSQL username used by Strapi.
+    database-password:
+      type: string
+      env: DATABASE_PASSWORD
+      value: <- $stack-db-password
+      description: Sensitive generated PostgreSQL password shared with the stack database. Inheriting production templates that need stable credentials should set secret("strapi-db-password").
+    jwt-secret:
+      type: string
+      env: JWT_SECRET
+      value: <- $stack-jwt-secret
+      description: Sensitive generated JWT signing secret. Inheriting production templates that need stable credentials should set secret("strapi-jwt-secret").
+    admin-jwt-secret:
+      type: string
+      env: ADMIN_JWT_SECRET
+      value: <- $stack-admin-jwt-secret
+      description: Sensitive generated admin JWT signing secret. Inheriting production templates that need stable credentials should set secret("strapi-admin-jwt-secret").
+    app-keys:
+      type: string
+      env: APP_KEYS
+      value: <- $stack-app-keys
+      description: Sensitive generated comma-separated Strapi application keys. Inheriting production templates that need stable credentials should set secret("strapi-app-keys").
+    api-token-salt:
+      type: string
+      env: API_TOKEN_SALT
+      value: <- $stack-api-token-salt
+      description: Sensitive generated API token salt. Inheriting production templates that need stable credentials should set secret("strapi-api-token-salt").
+    transfer-token-salt:
+      type: string
+      env: TRANSFER_TOKEN_SALT
+      value: <- $stack-transfer-token-salt
+      description: Sensitive generated transfer token salt. Inheriting production templates that need stable credentials should set secret("strapi-transfer-token-salt").
+  services:
+    http:
+      container: strapi
+      port: <- $port
+      protocol: tcp
+      publish: false
+      description: Strapi admin and API HTTP service intended for production ingress.
+      ingress-routes:
+        strapi:
+          path-prefix: /
+  connections:
+    db:
+      target: strapi/stack-db
+      service: postgres
+      description: Private PostgreSQL service connected to Strapi.
+  depends:
+    wait-for:
+      runnables:
+        - strapi/stack-db
+      timeout: 180
+  checks:
+    readiness:
+      code: http-get-service("strapi/stack-app", "http", "/admin") get-member("status") 200
+      period: 15
+      initialDelay: 120
+      attempts: 40
+
+stack:
+  defines: process-group
+  metadata:
+    name: Strapi Standalone Stack
+    description: |
+      Secure production-oriented standalone Strapi stack with private PostgreSQL and Strapi exposed
+      only through Monk ingress. No default passwords are used; sensitive values are generated for
+      self-contained deployments and documented for secret-backed inheritance.
+    tags: strapi, cms, postgres, standalone, production
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    stack-db-name:
+      type: string
+      value: strapi
+      description: PostgreSQL database name shared by standalone stack workloads.
+    stack-db-user:
+      type: string
+      value: strapi
+      description: PostgreSQL username shared by standalone stack workloads.
+    stack-db-password:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated PostgreSQL password for the standalone stack.
+    stack-jwt-secret:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated JWT signing secret for the standalone stack.
+    stack-admin-jwt-secret:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated admin JWT signing secret for the standalone stack.
+    stack-app-keys:
+      type: string
+      value: <- random-uuid "," random-uuid concat-all
+      description: Sensitive generated comma-separated Strapi application keys for the standalone stack.
+    stack-api-token-salt:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated API token salt for the standalone stack.
+    stack-transfer-token-salt:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated transfer token salt for the standalone stack.
+  runnable-list:
+    - strapi/stack-db
+    - strapi/stack-app
+
+stack-local-db:
+  defines: runnable
+  inherits: strapi/stack-db
+  metadata:
+    name: Strapi Local Stack PostgreSQL
+    description: |
+      Private PostgreSQL database for the local standalone Strapi verification flavor. It is not
+      published to the host and is accessed only through Monk connections.
+    tags: strapi, postgres, database, standalone, local
+    website: https://www.postgresql.org/
+    source: https://github.com/postgres/postgres
+    publisher: monk.io
+    icon: https://www.postgresql.org/media/img/about/press/elephant.png
+    private: false
+  variables:
+    db_name:
+      type: string
+      env: POSTGRES_DB
+      value: <- $stack-local-db-name
+      description: PostgreSQL database name created for the local stack flavor.
+    db_user:
+      type: string
+      env: POSTGRES_USER
+      value: <- $stack-local-db-user
+      description: PostgreSQL user created for the local stack flavor.
+    db_pass:
+      type: string
+      env: POSTGRES_PASSWORD
+      value: <- $stack-local-db-password
+      description: Sensitive generated PostgreSQL password for the local stack flavor.
+  containers:
+    postgres:
+      paths:
+        - <- `${monk-volume-path}/strapi-stack-local-postgres:/var/lib/postgresql/data`
+  checks:
+    readiness:
+      code: tcp-check-service("strapi/stack-local-db", "postgres")
+      period: 10
+      initialDelay: 10
+      attempts: 30
+
+stack-local-app:
+  defines: runnable
+  inherits: strapi/stack-app
+  metadata:
+    name: Strapi Local Standalone App
+    description: |
+      Local verification flavor for the standalone Strapi stack. It publishes Strapi on a
+      non-privileged localhost port because Monk ingress is not available on local targets.
+    tags: strapi, cms, postgres, standalone, local
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    node-env:
+      type: string
+      env: NODE_ENV
+      value: development
+      description: Development mode enables first-run Strapi project creation for the local stack flavor.
+    app-volume-name:
+      type: string
+      value: strapi-stack-local-app
+      description: Monk volume subdirectory used by the local Strapi project.
+    public-url:
+      type: string
+      env: PUBLIC_URL
+      value: http://localhost:8137
+      description: Local URL used for standalone stack verification.
+    admin-url:
+      type: string
+      env: ADMIN_URL
+      value: http://localhost:8137/admin
+      description: Local admin URL used for standalone stack verification.
+    database-host:
+      type: string
+      env: DATABASE_HOST
+      value: <- connection-hostname("db")
+      description: PostgreSQL hostname read from the local Monk `db` connection.
+    database-port:
+      type: string
+      env: DATABASE_PORT
+      value: <- connection-port("db")
+      description: PostgreSQL port read from the local Monk `db` connection.
+    database-name:
+      type: string
+      env: DATABASE_NAME
+      value: <- $stack-local-db-name
+      description: PostgreSQL database name used by the local stack flavor.
+    database-username:
+      type: string
+      env: DATABASE_USERNAME
+      value: <- $stack-local-db-user
+      description: PostgreSQL username used by the local stack flavor.
+    database-password:
+      type: string
+      env: DATABASE_PASSWORD
+      value: <- $stack-local-db-password
+      description: Sensitive generated PostgreSQL password shared with the local stack database.
+    jwt-secret:
+      type: string
+      env: JWT_SECRET
+      value: <- $stack-local-jwt-secret
+      description: Sensitive generated JWT signing secret for the local stack flavor.
+    admin-jwt-secret:
+      type: string
+      env: ADMIN_JWT_SECRET
+      value: <- $stack-local-admin-jwt-secret
+      description: Sensitive generated admin JWT signing secret for the local stack flavor.
+    app-keys:
+      type: string
+      env: APP_KEYS
+      value: <- $stack-local-app-keys
+      description: Sensitive generated comma-separated Strapi application keys for the local stack flavor.
+    api-token-salt:
+      type: string
+      env: API_TOKEN_SALT
+      value: <- $stack-local-api-token-salt
+      description: Sensitive generated API token salt for the local stack flavor.
+    transfer-token-salt:
+      type: string
+      env: TRANSFER_TOKEN_SALT
+      value: <- $stack-local-transfer-token-salt
+      description: Sensitive generated transfer token salt for the local stack flavor.
+    host-port:
+      type: int
+      value: 8137
+      description: Non-privileged host port published for local standalone verification.
+  services:
+    http:
+      container: strapi
+      port: <- $port
+      protocol: tcp
+      publish: true
+      host-port: <- $host-port
+      description: Published local Strapi HTTP service for standalone stack verification.
+  connections:
+    db:
+      target: strapi/stack-local-db
+      service: postgres
+      description: Private PostgreSQL service connected to the local Strapi app.
+  depends:
+    wait-for:
+      runnables:
+        - strapi/stack-local-db
+      timeout: 180
+  checks:
+    readiness:
+      code: http-get-service("strapi/stack-local-app", "http", "/admin") get-member("status") 200
+      period: 15
+      initialDelay: 120
+      attempts: 40
+
+stack-local:
+  defines: process-group
+  metadata:
+    name: Strapi Standalone Local Stack
+    description: |
+      Local verification flavor for the standalone Strapi stack. PostgreSQL remains private, and
+      Strapi is published on localhost for external HTTP proof.
+    tags: strapi, cms, postgres, standalone, local
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    stack-local-db-name:
+      type: string
+      value: strapi_local
+      description: PostgreSQL database name shared by local stack workloads.
+    stack-local-db-user:
+      type: string
+      value: strapi
+      description: PostgreSQL username shared by local stack workloads.
+    stack-local-db-password:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated PostgreSQL password for the local stack flavor.
+    stack-local-jwt-secret:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated JWT signing secret for the local stack flavor.
+    stack-local-admin-jwt-secret:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated admin JWT signing secret for the local stack flavor.
+    stack-local-app-keys:
+      type: string
+      value: <- random-uuid "," random-uuid concat-all
+      description: Sensitive generated comma-separated Strapi application keys for the local stack flavor.
+    stack-local-api-token-salt:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated API token salt for the local stack flavor.
+    stack-local-transfer-token-salt:
+      type: string
+      value: <- random-uuid
+      description: Sensitive generated transfer token salt for the local stack flavor.
+  runnable-list:
+    - strapi/stack-local-db
+    - strapi/stack-local-app
