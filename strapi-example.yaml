@@ -1,0 +1,217 @@
+namespace: strapi
+
+example-db:
+  defines: runnable
+  inherits: postgresql/db
+  metadata:
+    name: Strapi Component Example PostgreSQL
+    description: |
+      PostgreSQL database used by the Strapi component example. It inherits the Monk catalog
+      `postgresql/db` package and stays private on the Monk network.
+    tags: strapi, postgres, database, example, local
+    website: https://www.postgresql.org/
+    source: https://github.com/postgres/postgres
+    publisher: monk.io
+    icon: https://www.postgresql.org/media/img/about/press/elephant.png
+    private: false
+  variables:
+    version:
+      type: string
+      value: "17"
+      description: Public postgres Docker image tag used by the component example.
+    db_name:
+      type: string
+      env: POSTGRES_DB
+      value: <- $example-db-name
+      description: PostgreSQL database name created for the component example.
+    db_user:
+      type: string
+      env: POSTGRES_USER
+      value: <- $example-db-user
+      description: PostgreSQL user created for the component example.
+    db_pass:
+      type: string
+      env: POSTGRES_PASSWORD
+      value: <- $example-db-password
+      description: Sensitive generated PostgreSQL password for the local component example.
+  containers:
+    postgres:
+      paths:
+        - <- `${monk-volume-path}/strapi-example-postgres:/var/lib/postgresql/data`
+  services:
+    postgres:
+      container: postgres
+      port: 5432
+      protocol: tcp
+      publish: false
+      description: Private PostgreSQL endpoint consumed by the Strapi component example.
+  checks:
+    readiness:
+      code: tcp-check-service("strapi/example-db", "postgres")
+      period: 10
+      initialDelay: 10
+      attempts: 30
+
+example-app:
+  defines: runnable
+  inherits: strapi/base
+  metadata:
+    name: Strapi Component Example App
+    description: |
+      Component demonstration that inherits the reusable Strapi base and wires it to a concrete
+      PostgreSQL database from the Monk catalog. It publishes a localhost port for external smoke
+      testing only.
+    tags: strapi, cms, postgres, component, example, local
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    node-env:
+      type: string
+      env: NODE_ENV
+      value: development
+      description: Development mode enables first-run Strapi project creation for the component example.
+    app-volume-name:
+      type: string
+      value: strapi-example-app
+      description: Monk volume subdirectory used by the component example Strapi project.
+    public-url:
+      type: string
+      env: PUBLIC_URL
+      value: http://localhost:8138
+      description: Local URL used for component example verification.
+    admin-url:
+      type: string
+      env: ADMIN_URL
+      value: http://localhost:8138/admin
+      description: Local admin URL used for component example verification.
+    database-host:
+      type: string
+      env: DATABASE_HOST
+      value: <- connection-hostname("db")
+      description: PostgreSQL hostname read from the Monk `db` connection.
+    database-port:
+      type: string
+      env: DATABASE_PORT
+      value: <- connection-port("db")
+      description: PostgreSQL port read from the Monk `db` connection.
+    database-name:
+      type: string
+      env: DATABASE_NAME
+      value: <- $example-db-name
+      description: PostgreSQL database name used by the component example.
+    database-username:
+      type: string
+      env: DATABASE_USERNAME
+      value: <- $example-db-user
+      description: PostgreSQL username used by the component example.
+    database-password:
+      type: string
+      env: DATABASE_PASSWORD
+      value: <- $example-db-password
+      description: Sensitive generated PostgreSQL password shared with the component example database.
+    jwt-secret:
+      type: string
+      env: JWT_SECRET
+      value: <- $example-jwt-secret
+      description: Sensitive generated JWT signing secret for the component example.
+    admin-jwt-secret:
+      type: string
+      env: ADMIN_JWT_SECRET
+      value: <- $example-admin-jwt-secret
+      description: Sensitive generated admin JWT signing secret for the component example.
+    app-keys:
+      type: string
+      env: APP_KEYS
+      value: <- $example-app-keys
+      description: Sensitive generated comma-separated Strapi application keys for the component example.
+    api-token-salt:
+      type: string
+      env: API_TOKEN_SALT
+      value: <- $example-api-token-salt
+      description: Sensitive generated API token salt for the component example.
+    transfer-token-salt:
+      type: string
+      env: TRANSFER_TOKEN_SALT
+      value: <- $example-transfer-token-salt
+      description: Sensitive generated transfer token salt for the component example.
+    host-port:
+      type: int
+      value: 8138
+      description: Non-privileged host port published for local component example verification.
+  services:
+    http:
+      container: strapi
+      port: <- $port
+      protocol: tcp
+      publish: true
+      host-port: <- $host-port
+      description: Published local Strapi HTTP service for component example verification.
+  connections:
+    db:
+      target: strapi/example-db
+      service: postgres
+      description: Private PostgreSQL service connected to Strapi.
+  depends:
+    wait-for:
+      runnables:
+        - strapi/example-db
+      timeout: 180
+  checks:
+    readiness:
+      code: http-get-service("strapi/example-app", "http", "/admin") get-member("status") 200
+      period: 15
+      initialDelay: 120
+      attempts: 40
+
+example:
+  defines: process-group
+  metadata:
+    name: Strapi Component Example
+    description: |
+      Component demonstration that composes the reusable Strapi base with a concrete PostgreSQL
+      backing service and publishes Strapi on localhost for verification.
+    tags: strapi, cms, postgres, component, example, local
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    example-db-name:
+      type: string
+      value: strapi_example
+      description: PostgreSQL database name shared by the component example workloads.
+    example-db-user:
+      type: string
+      value: strapi
+      description: PostgreSQL username shared by the component example workloads.
+    example-db-password:
+      type: string
+      value: <- "monktestpwd2026ab"
+      description: Sensitive generated PostgreSQL password for the component example.
+    example-jwt-secret:
+      type: string
+      value: <- "monktestpwd2026ab"
+      description: Sensitive generated JWT signing secret for the component example.
+    example-admin-jwt-secret:
+      type: string
+      value: <- "monktestpwd2026ab"
+      description: Sensitive generated admin JWT signing secret for the component example.
+    example-app-keys:
+      type: string
+      value: <- "monktestpwd2026ab" "," "monktestpwd2026ab" concat-all
+      description: Sensitive generated comma-separated Strapi application keys for the component example.
+    example-api-token-salt:
+      type: string
+      value: <- "monktestpwd2026ab"
+      description: Sensitive generated API token salt for the component example.
+    example-transfer-token-salt:
+      type: string
+      value: <- "monktestpwd2026ab"
+      description: Sensitive generated transfer token salt for the component example.
+  runnable-list:
+    - strapi/example-db
+    - strapi/example-app

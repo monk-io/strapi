@@ -1,0 +1,130 @@
+namespace: strapi
+
+base:
+  defines: runnable
+  metadata:
+    name: Strapi
+    description: |
+      Reusable Strapi headless CMS component using the public vshadbolt/strapi image. The base
+      expects an external SQL database to be connected as `db`; compatible Monk packages include
+      self-hosted `postgresql/db` or hosted Postgres packages such as Neon. It can also be inherited
+      for MySQL or MariaDB by overriding the database variables and connecting the matching service.
+    tags: strapi, cms, headless-cms, api, nodejs, component
+    website: https://strapi.io/
+    source: https://github.com/strapi/strapi
+    publisher: monk.io
+    icon: https://strapi.io/assets/strapi-logo-dark.svg
+    private: false
+  variables:
+    strapi-image-tag:
+      type: string
+      value: 5.48.0
+      description: Public vshadbolt/strapi Docker image tag to run. This local template default targets arm64; amd64 deployments should override it to 5.48.0.
+    node-env:
+      type: string
+      env: NODE_ENV
+      value: production
+      description: Strapi runtime mode. Production disables development-only admin builders.
+    host:
+      type: string
+      env: HOST
+      value: 0.0.0.0
+      description: Interface Strapi binds inside the container.
+    port:
+      type: int
+      env: PORT
+      value: 1337
+      description: HTTP port Strapi listens on inside the container.
+    public-url:
+      type: string
+      env: PUBLIC_URL
+      value: ""
+      description: Public base URL for Strapi APIs. Inheriting exposed templates should set this to their external URL.
+    admin-url:
+      type: string
+      env: ADMIN_URL
+      value: ""
+      description: Public admin URL. Inheriting exposed templates should set this to the external admin URL.
+    database-client:
+      type: string
+      env: DATABASE_CLIENT
+      value: postgres
+      description: SQL database client used by Strapi; defaults to postgres for Monk composition.
+    database-host:
+      type: string
+      env: DATABASE_HOST
+      value: ""
+      description: Database hostname. Inheriting templates should set this from connection-hostname("db").
+    database-port:
+      type: string
+      env: DATABASE_PORT
+      value: "5432"
+      description: Database TCP port. Inheriting templates should set this from connection-port("db").
+    database-name:
+      type: string
+      env: DATABASE_NAME
+      value: strapi
+      description: Database name used by Strapi.
+    database-username:
+      type: string
+      env: DATABASE_USERNAME
+      value: strapi
+      description: Database user used by Strapi.
+    database-password:
+      type: string
+      env: DATABASE_PASSWORD
+      value: ""
+      description: Sensitive database password. Inheriting templates must set this with a generated value or secret("strapi-db-password") using a plain secret name.
+    database-ssl:
+      type: string
+      env: DATABASE_SSL
+      value: "false"
+      description: Whether Strapi should use SSL for database connections.
+    jwt-secret:
+      type: string
+      env: JWT_SECRET
+      value: ""
+      description: Sensitive JWT signing secret. Inheriting templates must set this with a generated value or secret("strapi-jwt-secret") using a plain secret name.
+    admin-jwt-secret:
+      type: string
+      env: ADMIN_JWT_SECRET
+      value: ""
+      description: Sensitive admin JWT signing secret. Inheriting templates must set this with a generated value or secret("strapi-admin-jwt-secret") using a plain secret name.
+    app-keys:
+      type: string
+      env: APP_KEYS
+      value: ""
+      description: Sensitive comma-separated Strapi application keys. Inheriting templates must set this with generated values or secret("strapi-app-keys") using a plain secret name.
+    api-token-salt:
+      type: string
+      env: API_TOKEN_SALT
+      value: ""
+      description: Sensitive API token salt. Inheriting templates must set this with a generated value or secret("strapi-api-token-salt") using a plain secret name.
+    transfer-token-salt:
+      type: string
+      env: TRANSFER_TOKEN_SALT
+      value: ""
+      description: Sensitive transfer token salt. Inheriting templates must set this with a generated value or secret("strapi-transfer-token-salt") using a plain secret name.
+    enable-vite-allowed-hosts:
+      type: string
+      env: ENABLE_VITE_ALLOWED_HOSTS
+      value: "true"
+      description: Allows Strapi's admin Vite server to accept externally routed hostnames when needed.
+    app-volume-name:
+      type: string
+      value: strapi-app
+      description: Monk volume subdirectory used for generated Strapi project files and uploads.
+  containers:
+    strapi:
+      image: vshadbolt/strapi
+      image-tag: <- $strapi-image-tag
+      restart: unless-stopped
+      paths:
+        - <- `${monk-volume-path}/${app-volume-name}:/srv/app`
+  services:
+    http:
+      container: strapi
+      port: <- $port
+      protocol: tcp
+      publish: false
+      description: Private Strapi HTTP service for APIs and admin UI.
