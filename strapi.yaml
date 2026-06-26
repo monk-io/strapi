@@ -18,7 +18,7 @@ base:
   variables:
     strapi-image-tag:
       type: string
-      value: 5.48.0-arm64
+      value: 5.48.0
       description: Public vshadbolt/strapi Docker image tag to run. This local template default targets arm64; amd64 deployments should override it to 5.48.0.
     node-env:
       type: string

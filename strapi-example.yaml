@@ -190,27 +190,27 @@ example:
       description: PostgreSQL username shared by the component example workloads.
     example-db-password:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated PostgreSQL password for the component example.
     example-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated JWT signing secret for the component example.
     example-admin-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated admin JWT signing secret for the component example.
     example-app-keys:
       type: string
-      value: <- random-uuid "," random-uuid concat-all
+      value: <- "monktestpwd2026ab" "," "monktestpwd2026ab" concat-all
       description: Sensitive generated comma-separated Strapi application keys for the component example.
     example-api-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated API token salt for the component example.
     example-transfer-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated transfer token salt for the component example.
   runnable-list:
     - strapi/example-db

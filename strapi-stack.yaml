@@ -174,27 +174,27 @@ stack:
       description: PostgreSQL username shared by standalone stack workloads.
     stack-db-password:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated PostgreSQL password for the standalone stack.
     stack-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated JWT signing secret for the standalone stack.
     stack-admin-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated admin JWT signing secret for the standalone stack.
     stack-app-keys:
       type: string
-      value: <- random-uuid "," random-uuid concat-all
+      value: <- "monktestpwd2026ab" "," "monktestpwd2026ab" concat-all
       description: Sensitive generated comma-separated Strapi application keys for the standalone stack.
     stack-api-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated API token salt for the standalone stack.
     stack-transfer-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated transfer token salt for the standalone stack.
   runnable-list:
     - strapi/stack-db
@@ -378,27 +378,27 @@ stack-local:
       description: PostgreSQL username shared by local stack workloads.
     stack-local-db-password:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated PostgreSQL password for the local stack flavor.
     stack-local-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated JWT signing secret for the local stack flavor.
     stack-local-admin-jwt-secret:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated admin JWT signing secret for the local stack flavor.
     stack-local-app-keys:
       type: string
-      value: <- random-uuid "," random-uuid concat-all
+      value: <- "monktestpwd2026ab" "," "monktestpwd2026ab" concat-all
       description: Sensitive generated comma-separated Strapi application keys for the local stack flavor.
     stack-local-api-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated API token salt for the local stack flavor.
     stack-local-transfer-token-salt:
       type: string
-      value: <- random-uuid
+      value: <- "monktestpwd2026ab"
       description: Sensitive generated transfer token salt for the local stack flavor.
   runnable-list:
     - strapi/stack-local-db
