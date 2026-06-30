@@ -110,17 +110,17 @@ base:
       env: ENABLE_VITE_ALLOWED_HOSTS
       value: "true"
       description: Allows Strapi's admin Vite server to accept externally routed hostnames when needed.
-    app-volume-name:
-      type: string
-      value: strapi-app
-      description: Monk volume subdirectory used for generated Strapi project files and uploads.
   containers:
     strapi:
       image: vshadbolt/strapi
       image-tag: <- $strapi-image-tag
       restart: unless-stopped
-      paths:
-        - <- `${monk-volume-path}/${app-volume-name}:/srv/app`
+      mounted-volumes:
+        strapi-app:
+          path: /srv/app
+  volumes:
+    strapi-app:
+      kind: local
   services:
     http:
       container: strapi

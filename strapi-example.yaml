@@ -36,8 +36,12 @@ example-db:
       description: Sensitive generated PostgreSQL password for the local component example.
   containers:
     postgres:
-      paths:
-        - <- `${monk-volume-path}/strapi-example-postgres:/var/lib/postgresql/data`
+      mounted-volumes:
+        strapi-postgres-data:
+          path: /var/lib/postgresql/data
+  volumes:
+    strapi-postgres-data:
+      kind: local
   services:
     postgres:
       container: postgres
@@ -73,10 +77,6 @@ example-app:
       env: NODE_ENV
       value: development
       description: Development mode enables first-run Strapi project creation for the component example.
-    app-volume-name:
-      type: string
-      value: strapi-example-app
-      description: Monk volume subdirectory used by the component example Strapi project.
     public-url:
       type: string
       env: PUBLIC_URL

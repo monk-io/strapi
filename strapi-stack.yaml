@@ -36,8 +36,12 @@ stack-db:
       description: Sensitive generated PostgreSQL password for the standalone stack. Inheriting production templates that need stable credentials should set secret("strapi-db-password").
   containers:
     postgres:
-      paths:
-        - <- `${monk-volume-path}/strapi-stack-postgres:/var/lib/postgresql/data`
+      mounted-volumes:
+        strapi-postgres-data:
+          path: /var/lib/postgresql/data
+  volumes:
+    strapi-postgres-data:
+      kind: local
   services:
     postgres:
       container: postgres
@@ -68,10 +72,6 @@ stack-app:
     icon: https://strapi.io/assets/strapi-logo-dark.svg
     private: false
   variables:
-    app-volume-name:
-      type: string
-      value: strapi-stack-app
-      description: Monk volume subdirectory used by the production-oriented Strapi project.
     database-host:
       type: string
       env: DATABASE_HOST
@@ -230,10 +230,6 @@ stack-local-db:
       env: POSTGRES_PASSWORD
       value: <- $stack-local-db-password
       description: Sensitive generated PostgreSQL password for the local stack flavor.
-  containers:
-    postgres:
-      paths:
-        - <- `${monk-volume-path}/strapi-stack-local-postgres:/var/lib/postgresql/data`
   checks:
     readiness:
       code: tcp-check-service("strapi/stack-local-db", "postgres")
@@ -261,10 +257,6 @@ stack-local-app:
       env: NODE_ENV
       value: development
       description: Development mode enables first-run Strapi project creation for the local stack flavor.
-    app-volume-name:
-      type: string
-      value: strapi-stack-local-app
-      description: Monk volume subdirectory used by the local Strapi project.
     public-url:
       type: string
       env: PUBLIC_URL
