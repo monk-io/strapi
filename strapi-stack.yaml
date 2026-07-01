@@ -2,7 +2,7 @@ namespace: strapi
 
 stack-db:
   defines: runnable
-  inherits: postgresql/db
+  inherits: postgresql/db-v17
   metadata:
     name: Strapi Stack PostgreSQL
     description: |
@@ -34,14 +34,6 @@ stack-db:
       env: POSTGRES_PASSWORD
       value: <- $stack-db-password
       description: Sensitive generated PostgreSQL password for the standalone stack. Inheriting production templates that need stable credentials should set secret("strapi-db-password").
-  containers:
-    postgres:
-      mounted-volumes:
-        strapi-postgres-data:
-          path: /var/lib/postgresql/data
-  volumes:
-    strapi-postgres-data:
-      kind: local
   services:
     postgres:
       container: postgres

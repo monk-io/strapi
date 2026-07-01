@@ -2,7 +2,7 @@ namespace: strapi
 
 example-db:
   defines: runnable
-  inherits: postgresql/db
+  inherits: postgresql/db-v17
   metadata:
     name: Strapi Component Example PostgreSQL
     description: |
@@ -34,14 +34,6 @@ example-db:
       env: POSTGRES_PASSWORD
       value: <- $example-db-password
       description: Sensitive generated PostgreSQL password for the local component example.
-  containers:
-    postgres:
-      mounted-volumes:
-        strapi-postgres-data:
-          path: /var/lib/postgresql/data
-  volumes:
-    strapi-postgres-data:
-      kind: local
   services:
     postgres:
       container: postgres
