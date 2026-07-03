@@ -2,7 +2,7 @@ namespace: strapi
 
 example-db:
   defines: runnable
-  inherits: postgresql/db
+  inherits: postgresql/db-v17
   metadata:
     name: Strapi Component Example PostgreSQL
     description: |
@@ -34,10 +34,6 @@ example-db:
       env: POSTGRES_PASSWORD
       value: <- $example-db-password
       description: Sensitive generated PostgreSQL password for the local component example.
-  containers:
-    postgres:
-      paths:
-        - <- `${monk-volume-path}/strapi-example-postgres:/var/lib/postgresql/data`
   services:
     postgres:
       container: postgres
@@ -73,10 +69,6 @@ example-app:
       env: NODE_ENV
       value: development
       description: Development mode enables first-run Strapi project creation for the component example.
-    app-volume-name:
-      type: string
-      value: strapi-example-app
-      description: Monk volume subdirectory used by the component example Strapi project.
     public-url:
       type: string
       env: PUBLIC_URL
