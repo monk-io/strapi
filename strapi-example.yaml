@@ -138,6 +138,7 @@ example-app:
       container: strapi
       port: <- $port
       protocol: tcp
+      publish: true
       host-port: <- $host-port
       description: Published local Strapi HTTP service for component example verification.
   connections:

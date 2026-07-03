@@ -318,6 +318,7 @@ stack-local-app:
       container: strapi
       port: <- $port
       protocol: tcp
+      publish: true
       host-port: <- $host-port
       description: Published local Strapi HTTP service for standalone stack verification.
   connections:
