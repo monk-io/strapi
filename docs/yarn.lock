@@ -8903,15 +8903,15 @@ __metadata:
   linkType: hard
 
 "joi@npm:^17.9.2":
-  version: 17.12.2
-  resolution: "joi@npm:17.12.2"
+  version: 17.13.7
+  resolution: "joi@npm:17.13.7"
   dependencies:
     "@hapi/hoek": "npm:^9.3.0"
     "@hapi/topo": "npm:^5.1.0"
     "@sideway/address": "npm:^4.1.5"
     "@sideway/formula": "npm:^3.0.1"
     "@sideway/pinpoint": "npm:^2.0.0"
-  checksum: 10c0/2cc89f0fc71282018a9032d48652fe6c62009689a7919512fb5a76735225875d4554da580d8b5c074bc4abd5b0ca0e4b32b3f2ab7e32c9f0b338d43f6bdf1162
+  checksum: 10c0/631b917001611631d4ed1007f307aabe36c0471617187f77298784c21264213b879c0f2ccd871fafbb0325c62012d4e3b77c60abbd67cc7a4f2d583f17f24568
   languageName: node
   linkType: hard
 
